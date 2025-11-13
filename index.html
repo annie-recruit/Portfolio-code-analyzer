@@ -312,36 +312,23 @@
             display: block;
         }
         .results-layout {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 25px;
             margin-top: 30px;
             align-items: stretch;
         }
         .results-left,
         .results-right {
-            flex: 1 1 500px;
             display: flex;
             flex-direction: column;
             gap: 25px;
+            min-width: 0;
         }
-        .results-left > .overview-card {
+        .results-left .overview-card {
             flex: 1;
             display: flex;
             flex-direction: column;
-        }
-        @media (max-width: 1090px) {
-            .results-layout {
-                flex-direction: column;
-            }
-            .results-left,
-            .results-right {
-                max-width: 100%;
-            }
-            .results-left > .overview-card,
-            .results-left > .result-card {
-                flex: unset;
-            }
         }
         .bottom-sections {
             display: flex;
