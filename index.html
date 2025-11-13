@@ -286,6 +286,15 @@
                     <button class="tab" onclick="switchTab('file')">파일 업로드</button>
                 </div>
                 
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;">
+                    <strong>🎯 JD 기반 매칭 분석 (선택사항)</strong>
+                    <p style="margin: 10px 0 0 0; font-size: 14px; color: #856404;">
+                        채용 JD를 입력하면 지원자의 코드와 역량 매칭 분석을 제공합니다.
+                    </p>
+                    <textarea id="jd-input" placeholder="채용 JD를 입력하세요...&#10;&#10;예시:&#10;• 필수: Python, Django, REST API 개발 경험&#10;• 우대: AWS, Docker, PostgreSQL&#10;• 레벨: 시니어 (5년 이상)" 
+                              style="width: 100%; min-height: 120px; padding: 10px; border: 2px solid #ffc107; border-radius: 5px; margin-top: 10px; font-size: 14px;"></textarea>
+                </div>
+                
                 <div id="github-tab" class="tab-content active">
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">GitHub 저장소 URL</label>
@@ -557,6 +566,7 @@
                 // 파일 데이터 가져오기
                 const fileDataJson = JSON.stringify(window.githubFileData || []);
                 const totalFiles = window.githubTotalFiles || 0;
+                const jdText = document.getElementById('jd-input')?.value.trim() || '';
                 
                 // Python 분석 코드 실행
                 const analysisCode = `
@@ -565,7 +575,7 @@ import re
 import json
 from collections import defaultdict
 
-def analyze_code(code_content, file_data_json, total_files=0):
+def analyze_code(code_content, file_data_json, total_files=0, jd_text=''):
     results = {
         'files_analyzed': 0,
         'total_lines': 0,
@@ -575,7 +585,15 @@ def analyze_code(code_content, file_data_json, total_files=0):
         'readability': {'score': 0, 'issues': []},
         'structure': {'score': 0, 'issues': []},
         'issues': [],
-        'metrics': {}
+        'metrics': {},
+        'jd_matching': {
+            'enabled': bool(jd_text),
+            'match_score': 0,
+            'matched_skills': [],
+            'missing_skills': [],
+            'level_match': '',
+            'recommendations': []
+        }
     }
     
     # 파일 데이터 파싱
@@ -748,12 +766,137 @@ def analyze_code(code_content, file_data_json, total_files=0):
     else:
         results['grade'] = 'F'
     
+    # JD 매칭 분석
+    if jd_text:
+        # file_data가 없으면 code_content 사용
+        if not file_data:
+            file_data = [{'content': code_content, 'path': 'uploaded_code'}]
+        jd_matching = analyze_jd_matching(jd_text, results, file_data)
+        results['jd_matching'] = jd_matching
+    
     return results
+
+def analyze_jd_matching(jd_text, code_results, file_data):
+    """JD와 코드를 매칭 분석"""
+    jd_lower = jd_text.lower()
+    matched_skills = []
+    missing_skills = []
+    
+    # 기술 스택 키워드 매칭
+    tech_keywords = {
+        'python': ['python', 'py', 'django', 'flask', 'fastapi'],
+        'javascript': ['javascript', 'js', 'node', 'react', 'vue', 'angular', 'typescript', 'ts'],
+        'java': ['java', 'spring', 'jpa'],
+        'rust': ['rust', 'rs', 'cargo'],
+        'go': ['go', 'golang'],
+        'aws': ['aws', 's3', 'ec2', 'lambda', 'cloudformation'],
+        'docker': ['docker', 'dockerfile', 'container'],
+        'kubernetes': ['kubernetes', 'k8s'],
+        'postgresql': ['postgresql', 'postgres', 'pg'],
+        'mysql': ['mysql', 'mariadb'],
+        'mongodb': ['mongodb', 'mongo'],
+        'redis': ['redis'],
+        'rest': ['rest', 'api', 'endpoint', 'http'],
+        'graphql': ['graphql', 'gql'],
+        'microservices': ['microservice', 'microservices'],
+        'ci/cd': ['ci/cd', 'github actions', 'jenkins', 'gitlab ci'],
+        'testing': ['test', 'unittest', 'pytest', 'jest', 'junit']
+    }
+    
+    # 코드에서 발견된 기술
+    code_languages = list(code_results['languages'].keys())
+    
+    # 코드 내용 수집
+    all_code_content = ''
+    for file_info in file_data:
+        all_code_content += file_info.get('content', '') + ' '
+    code_content_lower = all_code_content.lower()
+    
+    # JD에서 요구하는 기술 추출
+    required_techs = []
+    preferred_techs = []
+    
+    for tech, keywords in tech_keywords.items():
+        # JD에서 기술 언급 확인
+        if any(kw in jd_lower for kw in keywords):
+            if '필수' in jd_lower or 'required' in jd_lower or 'must' in jd_lower:
+                required_techs.append(tech)
+            else:
+                preferred_techs.append(tech)
+    
+    # 코드에서 기술 매칭 확인
+    for tech in required_techs + preferred_techs:
+        tech_found = False
+        for lang in code_languages:
+            if tech.lower() in lang.lower() or lang.lower() in tech.lower():
+                tech_found = True
+                break
+        
+        # 코드 내용에서도 확인
+        if not tech_found and file_data:
+            for file_info in file_data:
+                file_content = file_info.get('content', '').lower()
+                file_path = file_info.get('path', '').lower()
+                if any(kw in file_content or kw in file_path for kw in tech_keywords.get(tech, [tech])):
+                    tech_found = True
+                    break
+        
+        if tech_found:
+            matched_skills.append(tech)
+        else:
+            missing_skills.append(tech)
+    
+    # 레벨 매칭
+    level_match = ''
+    if '주니어' in jd_lower or 'junior' in jd_lower or '신입' in jd_lower:
+        if code_results['overall_score'] >= 70:
+            level_match = '적합'
+        else:
+            level_match = '부족'
+    elif '시니어' in jd_lower or 'senior' in jd_lower or '5년' in jd_lower or '3년' in jd_lower:
+        if code_results['overall_score'] >= 85:
+            level_match = '적합'
+        elif code_results['overall_score'] >= 75:
+            level_match = '보통'
+        else:
+            level_match = '부족'
+    else:
+        level_match = '확인 필요'
+    
+    # 매칭 점수 계산
+    total_skills = len(required_techs) + len(preferred_techs)
+    if total_skills > 0:
+        match_score = (len(matched_skills) / total_skills) * 100
+    else:
+        match_score = 0
+    
+    # 권장사항 생성
+    recommendations = []
+    if len(missing_skills) > 0:
+        recommendations.append(f'부족한 기술: {", ".join(missing_skills[:5])}')
+    if level_match == '부족':
+        recommendations.append('요구 레벨에 비해 코드 품질이 부족합니다')
+    if match_score < 50:
+        recommendations.append('JD 요구사항과 코드 간 격차가 큽니다')
+    if match_score >= 80:
+        recommendations.append('JD 요구사항과 잘 부합합니다')
+    
+    return {
+        'enabled': True,
+        'match_score': round(match_score, 1),
+        'matched_skills': matched_skills,
+        'missing_skills': missing_skills,
+        'required_skills': required_techs,
+        'preferred_skills': preferred_techs,
+        'level_match': level_match,
+        'recommendations': recommendations
+    }
 
 file_data_json = r'''${fileDataJson}'''
 code_content = r'''${currentCode.replace(/'/g, "\\'")}'''
 total_files = ${totalFiles}
-result = analyze_code(code_content, file_data_json, total_files)
+jd_text = r'''${jdText.replace(/'/g, "\\'")}'''
+result = analyze_code(code_content, file_data_json, total_files, jd_text)
 import json
 json.dumps(result)
 `;
@@ -905,6 +1048,44 @@ json.dumps(result)
                 ${gradeGuide}
                 
                 ${screeningGuide}
+                
+                ${result.jd_matching.enabled ? `
+                <div class="result-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                    <h3 style="color: white; margin-bottom: 20px;">🎯 JD 기반 역량 매칭 분석</h3>
+                    
+                    <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="font-size: 48px; font-weight: bold; text-align: center; margin-bottom: 10px;">
+                            ${result.jd_matching.match_score}%
+                        </div>
+                        <div style="text-align: center; font-size: 18px; opacity: 0.9;">
+                            JD 요구사항 매칭도
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <strong>✅ 매칭된 기술:</strong> ${result.jd_matching.matched_skills.length > 0 ? result.jd_matching.matched_skills.join(', ') : '없음'}
+                    </div>
+                    
+                    ${result.jd_matching.missing_skills.length > 0 ? `
+                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <strong>❌ 부족한 기술:</strong> ${result.jd_matching.missing_skills.join(', ')}
+                    </div>
+                    ` : ''}
+                    
+                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <strong>📊 레벨 매칭:</strong> ${result.jd_matching.level_match}
+                    </div>
+                    
+                    ${result.jd_matching.recommendations.length > 0 ? `
+                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <strong>💡 매칭 분석 결과:</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            ${result.jd_matching.recommendations.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+                ` : ''}
                 
                 <div class="result-card">
                     <h3>📊 상세 분석 결과</h3>
