@@ -1027,6 +1027,31 @@ json.dumps(result)
                 recommendations.push('전반적으로 양호한 코드 품질입니다');
             }
             
+            // 코드 강점 파악
+            const strengths = [];
+            if (result.overall_score >= 88) {
+                strengths.push('높은 종합 점수로 코드 전반의 품질이 우수합니다');
+            }
+            if (result.complexity.avg < 3) {
+                strengths.push('평균 복잡도가 낮아 코드가 이해하기 쉽습니다');
+            }
+            if (highCount === 0 && mediumCount <= 2) {
+                strengths.push('발견된 중대한 이슈가 거의 없습니다');
+            }
+            const avgLinesPerFile = Math.round(result.total_lines / Math.max(result.files_analyzed, 1));
+            if (avgLinesPerFile <= 150) {
+                strengths.push('파일당 코드 길이가 적절해 모듈화가 잘 되어 있습니다');
+            }
+            if (Object.keys(result.languages).length > 1) {
+                strengths.push(`다중 언어(${Object.keys(result.languages).join(', ')}) 활용 경험이 있습니다`);
+            }
+            if (result.jd_matching?.enabled && result.jd_matching?.match_score >= 70) {
+                strengths.push('JD 요구 기술과 상당 부분 일치합니다');
+            }
+            if (strengths.length === 0) {
+                strengths.push('안정적인 코드 베이스입니다');
+            }
+            
             // 등급별 설명
             const gradeDescriptions = {
                 'A': '우수한 코드 품질 - 프로덕션 레벨의 코드입니다. 즉시 채용 고려 가능합니다.',
@@ -1175,6 +1200,15 @@ json.dumps(result)
                         </div>
                     </div>
                 </div>
+                
+                ${strengths.length > 0 ? `
+                <div class="result-card" style="margin-top: 30px;">
+                    <h3>💪 코드 강점</h3>
+                    <ul style="line-height: 2;">
+                        ${strengths.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
                 
                 ${allIssues.length > 0 ? `
                 <div class="result-card" style="margin-top: 30px;">
