@@ -313,7 +313,7 @@
                 
                 <div id="file-tab" class="tab-content">
                     <div class="file-upload" onclick="document.getElementById('file-input').click()">
-                        <input type="file" id="file-input" accept=".py,.js,.ts,.java,.cpp,.c,.cs,.go,.rs,.rb,.php" onchange="handleFileSelect(event)">
+                        <input type="file" id="file-input" accept=".py,.js,.ts,.java,.kt,.kts,.cpp,.c,.cs,.go,.rs,.rb,.php" onchange="handleFileSelect(event)">
                         <div class="file-upload-label">📁 클릭하여 파일 선택</div>
                         <div class="file-info" id="file-info">또는 파일을 여기에 드래그하세요</div>
                     </div>
@@ -456,7 +456,7 @@
         // GitHub 파일 처리
         async function processGitHubFiles(files, repoPath) {
             const statusDiv = document.getElementById('github-status');
-            const codeExtensions = ['.py', '.js', '.ts', '.java', '.cpp', '.c', '.cs', '.go', '.rs', '.rb', '.php'];
+            const codeExtensions = ['.py', '.js', '.ts', '.java', '.kt', '.kts', '.cpp', '.c', '.cs', '.go', '.rs', '.rb', '.php'];
             
             // 코드 파일만 필터링
             const codeFiles = files.filter(file => {
@@ -619,6 +619,9 @@ def analyze_code(code_content, file_data_json, total_files=0, jd_text=''):
         elif 'public class' in code_content or 'public static' in code_content:
             lang = 'Java'
             results['languages']['Java'] = 1
+        elif any(kw in code_content for kw in ['fun ', 'val ', 'var ', 'data class ', 'sealed class ', 'companion object']):
+            lang = 'Kotlin'
+            results['languages']['Kotlin'] = 1
         else:
             results['languages']['Unknown'] = 1
     else:
@@ -647,6 +650,9 @@ def analyze_code(code_content, file_data_json, total_files=0, jd_text=''):
             elif file_ext == 'java':
                 lang = 'Java'
                 results['languages']['Java'] = results['languages'].get('Java', 0) + 1
+            elif file_ext in ['kt', 'kts']:
+                lang = 'Kotlin'
+                results['languages']['Kotlin'] = results['languages'].get('Kotlin', 0) + 1
             else:
                 lang = 'Unknown'
                 results['languages'][file_ext.upper()] = results['languages'].get(file_ext.upper(), 0) + 1
@@ -672,6 +678,9 @@ def analyze_code(code_content, file_data_json, total_files=0, jd_text=''):
                 complexity += len(re.findall(r'&&|\\|\\|', file_content))
             elif lang == 'Java':
                 complexity += len(re.findall(r'\\bif\\b|\\bwhile\\b|\\bfor\\b|\\bswitch\\b', file_content))
+                complexity += len(re.findall(r'&&|\\|\\|', file_content))
+            elif lang == 'Kotlin':
+                complexity += len(re.findall(r'\\bif\\b|\\bwhile\\b|\\bfor\\b|\\bwhen\\b', file_content))
                 complexity += len(re.findall(r'&&|\\|\\|', file_content))
             
             total_complexity += complexity
@@ -787,6 +796,7 @@ def analyze_jd_matching(jd_text, code_results, file_data):
         'python': ['python', 'py', 'django', 'flask', 'fastapi'],
         'javascript': ['javascript', 'js', 'node', 'react', 'vue', 'angular', 'typescript', 'ts'],
         'java': ['java', 'spring', 'jpa'],
+        'kotlin': ['kotlin', 'kt', 'kts', 'android'],
         'rust': ['rust', 'rs', 'cargo'],
         'go': ['go', 'golang'],
         'aws': ['aws', 's3', 'ec2', 'lambda', 'cloudformation'],
@@ -800,7 +810,18 @@ def analyze_jd_matching(jd_text, code_results, file_data):
         'graphql': ['graphql', 'gql'],
         'microservices': ['microservice', 'microservices'],
         'ci/cd': ['ci/cd', 'github actions', 'jenkins', 'gitlab ci'],
-        'testing': ['test', 'unittest', 'pytest', 'jest', 'junit']
+        'testing': ['test', 'unittest', 'pytest', 'jest', 'junit'],
+        # AI/ML 관련
+        'tensorflow': ['tensorflow', 'tf', 'keras'],
+        'pytorch': ['pytorch', 'torch'],
+        'scikit-learn': ['scikit-learn', 'sklearn', 'scikit'],
+        'opencv': ['opencv', 'cv2'],
+        'numpy': ['numpy', 'np'],
+        'pandas': ['pandas', 'pd'],
+        'machine learning': ['machine learning', 'ml', 'deep learning', 'neural network', 'cnn', 'rnn', 'lstm'],
+        'nlp': ['nlp', 'natural language processing', 'bert', 'gpt', 'transformer'],
+        'computer vision': ['computer vision', 'cv', 'image processing'],
+        'ai': ['artificial intelligence', 'ai', 'reinforcement learning', 'rl']
     }
     
     # 코드에서 발견된 기술

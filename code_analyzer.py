@@ -66,6 +66,8 @@ class CodeAnalyzer:
             '.js': 'JavaScript',
             '.ts': 'TypeScript',
             '.java': 'Java',
+            '.kt': 'Kotlin',
+            '.kts': 'Kotlin',
             '.cpp': 'C++',
             '.c': 'C',
             '.cs': 'C#',
