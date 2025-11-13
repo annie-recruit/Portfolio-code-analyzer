@@ -26,7 +26,10 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-*.html
+# *.html
+# index.html은 GitHub Pages를 위해 포함해야 함
+report.html
+test_report*.html
 *.pdf
 reports/
 .vscode/
