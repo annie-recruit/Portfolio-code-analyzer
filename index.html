@@ -1152,10 +1152,6 @@ json.dumps(result)
                         <div class="value" style="font-size: 16px;">${Object.keys(result.languages).join(', ') || '없음'}</div>
                     </div>
                 </div>
-                
-                ${scoreCriteria}
-                ${gradeGuide}
-                
                 <div class="result-card" style="margin-top: 30px;">
                     <h3>📊 상세 분석</h3>
                     
@@ -1212,6 +1208,9 @@ json.dumps(result)
                     • 학습용 프로젝트와 프로덕션 코드의 기준이 다를 수 있습니다.<br>
                     • 최종 판단은 기술 면접과 포트폴리오 전체를 종합적으로 검토한 후 결정하시기 바랍니다.
                 </div>
+                
+                ${scoreCriteria}
+                ${gradeGuide}
             `;
             
             document.getElementById('results').innerHTML = html;
