@@ -211,27 +211,17 @@
             margin: 6px 0;
         }
         .overview-bottom {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            padding: 20px 25px 25px;
+            padding: 25px 30px;
             background: #fff;
         }
-        .overview-stat {
-            background: #f8f9ff;
-            border-radius: 10px;
-            padding: 15px;
-            border-left: 4px solid #667eea;
-        }
-        .overview-stat .label {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 6px;
-        }
-        .overview-stat .value {
-            font-size: 22px;
-            font-weight: 700;
+        .overview-bottom h4 {
+            margin-bottom: 12px;
+            font-size: 18px;
             color: #2c3e50;
+        }
+        .overview-bottom ul {
+            margin-left: 18px;
+            line-height: 1.8;
         }
         @media (max-width: 768px) {
             .overview-top {
@@ -1203,22 +1193,10 @@ json.dumps(result)
                         ${jdOverview}
                     </div>
                     <div class="overview-bottom">
-                        <div class="overview-stat">
-                            <div class="label">평균 복잡도</div>
-                            <div class="value">${result.complexity.avg.toFixed(1)}</div>
-                        </div>
-                        <div class="overview-stat">
-                            <div class="label">최대 복잡도</div>
-                            <div class="value">${result.complexity.max}</div>
-                        </div>
-                        <div class="overview-stat">
-                            <div class="label">사용 언어</div>
-                            <div class="value" style="font-size: 16px;">${Object.keys(result.languages).join(', ') || '없음'}</div>
-                        </div>
-                        <div class="overview-stat">
-                            <div class="label">파일당 평균 라인</div>
-                            <div class="value">${Math.round(result.total_lines / Math.max(result.files_analyzed, 1))}줄</div>
-                        </div>
+                        <h4>💪 코드 강점 요약</h4>
+                        <ul>
+                            ${strengths.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
                     </div>
                 </div>
             `;
@@ -1254,17 +1232,6 @@ json.dumps(result)
                     </div>
                 </div>
             `;
-
-            if (strengths.length > 0) {
-                rightColumn += `
-                <div class="result-card">
-                    <h3>💪 코드 강점</h3>
-                    <ul style="line-height: 2;">
-                        ${strengths.map(s => `<li>${s}</li>`).join('')}
-                    </ul>
-                </div>
-                `;
-            }
 
             let issuesCard = '';
             if (allIssues.length > 0) {
