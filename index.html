@@ -170,22 +170,73 @@
             border-radius: 10px;
             margin-bottom: 20px;
         }
-        .score-display {
-            text-align: center;
+        .overview-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .overview-top {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 25px;
             padding: 30px;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
+        }
+        .overview-score-value {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .overview-grade {
+            font-size: 28px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .overview-description {
+            margin-top: 12px;
+            opacity: 0.85;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .overview-jd h4 {
+            margin-bottom: 12px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .overview-jd li {
+            margin: 6px 0;
+        }
+        .overview-bottom {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px 25px 25px;
+            background: #fff;
+        }
+        .overview-stat {
+            background: #f8f9ff;
             border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
         }
-        .score-display .score {
-            font-size: 72px;
-            font-weight: bold;
-            margin: 10px 0;
+        .overview-stat .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 6px;
         }
-        .score-display .grade {
-            font-size: 48px;
-            opacity: 0.9;
+        .overview-stat .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        @media (max-width: 768px) {
+            .overview-top {
+                grid-template-columns: 1fr;
+            }
         }
         .error {
             background: #fee;
@@ -275,16 +326,9 @@
             gap: 25px;
             margin-top: 30px;
         }
-        .results-left {
-            flex: 1 1 320px;
-            max-width: 420px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            align-self: stretch;
-        }
+        .results-left,
         .results-right {
-            flex: 1 1 480px;
+            flex: 1 1 500px;
             display: flex;
             flex-direction: column;
             gap: 25px;
@@ -301,7 +345,7 @@
             .results-right {
                 max-width: 100%;
             }
-            .results-left > .score-display,
+            .results-left > .overview-card,
             .results-left > .result-card {
                 flex: unset;
             }
@@ -1131,44 +1175,52 @@ json.dumps(result)
                 </div>
             `;
             
-            const scoreSection = `
-                <div class="score-display">
-                    <div class="score">${result.overall_score}점</div>
-                    <div class="grade">등급: ${result.grade}</div>
-                    <div style="margin-top: 15px; font-size: 16px; opacity: 0.9;">
-                        ${gradeDescriptions[result.grade]}
-                    </div>
+            const jdOverview = result.jd_matching.enabled ? `
+                <div class="overview-jd">
+                    <h4>🎯 JD 매칭</h4>
+                    <p style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">${result.jd_matching.match_score}% 매칭</p>
+                    <ul style="line-height: 1.7;">
+                        <li><strong>✅ 매칭된 기술:</strong> ${result.jd_matching.matched_skills.length > 0 ? result.jd_matching.matched_skills.join(', ') : '없음'}</li>
+                        <li><strong>❌ 부족한 기술:</strong> ${result.jd_matching.missing_skills.length > 0 ? result.jd_matching.missing_skills.join(', ') : '없음'}</li>
+                        <li><strong>📊 레벨 매칭:</strong> ${result.jd_matching.level_match}</li>
+                    </ul>
                 </div>
-                ${result.jd_matching.enabled ? `
-                <div class="result-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                    <h3 style="color: white; margin-bottom: 20px;">🎯 JD 기반 역량 매칭 분석</h3>
-                    <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin-bottom: 15px;">
-                        <div style="font-size: 48px; font-weight: bold; text-align: center; margin-bottom: 10px;">
-                            ${result.jd_matching.match_score}%
+            ` : `
+                <div class="overview-jd">
+                    <h4>🎯 JD 매칭</h4>
+                    <p style="opacity: 0.8;">JD 정보를 입력하면 요구 역량과의 매칭 결과를 확인할 수 있습니다.</p>
+                </div>
+            `;
+
+            const overviewSection = `
+                <div class="overview-card">
+                    <div class="overview-top">
+                        <div>
+                            <div class="overview-score-value">${result.overall_score}점</div>
+                            <div class="overview-grade">등급: ${result.grade}</div>
+                            <div class="overview-description">${gradeDescriptions[result.grade]}</div>
                         </div>
-                        <div style="text-align: center; font-size: 18px; opacity: 0.9;">JD 요구사항 매칭도</div>
+                        ${jdOverview}
                     </div>
-                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin: 10px 0;">
-                        <strong>✅ 매칭된 기술:</strong> ${result.jd_matching.matched_skills.length > 0 ? result.jd_matching.matched_skills.join(', ') : '없음'}
+                    <div class="overview-bottom">
+                        <div class="overview-stat">
+                            <div class="label">평균 복잡도</div>
+                            <div class="value">${result.complexity.avg.toFixed(1)}</div>
+                        </div>
+                        <div class="overview-stat">
+                            <div class="label">최대 복잡도</div>
+                            <div class="value">${result.complexity.max}</div>
+                        </div>
+                        <div class="overview-stat">
+                            <div class="label">사용 언어</div>
+                            <div class="value" style="font-size: 16px;">${Object.keys(result.languages).join(', ') || '없음'}</div>
+                        </div>
+                        <div class="overview-stat">
+                            <div class="label">파일당 평균 라인</div>
+                            <div class="value">${Math.round(result.total_lines / Math.max(result.files_analyzed, 1))}줄</div>
+                        </div>
                     </div>
-                    ${result.jd_matching.missing_skills.length > 0 ? `
-                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin: 10px 0;">
-                        <strong>❌ 부족한 기술:</strong> ${result.jd_matching.missing_skills.join(', ')}
-                    </div>
-                    ` : ''}
-                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin: 10px 0;">
-                        <strong>📊 레벨 매칭:</strong> ${result.jd_matching.level_match}
-                    </div>
-                    ${result.jd_matching.recommendations.length > 0 ? `
-                    <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin: 10px 0;">
-                        <strong>💡 매칭 분석 결과:</strong>
-                        <ul style="margin-top: 10px; margin-left: 20px;">
-                            ${result.jd_matching.recommendations.map(r => `<li>${r}</li>`).join('')}
-                        </ul>
-                    </div>
-                    ` : ''}
                 </div>
-                ` : ''}
             `;
 
             let rightColumn = `
@@ -1267,7 +1319,7 @@ json.dumps(result)
             const html = `
                 <div class="results-layout">
                     <div class="results-left">
-                        ${scoreSection}
+                        ${overviewSection}
                     </div>
                     <div class="results-right">
                         ${rightColumn}
