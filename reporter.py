@@ -1,6 +1,15 @@
 """
 리포트 생성기
 분석 결과를 HTML 형식의 리포트로 생성합니다.
+
+Copyright (c) 2025 Gaon
+All rights reserved.
+
+이 소프트웨어는 저작권법에 의해 보호됩니다.
+무단 복제, 배포, 수정을 금지합니다.
+사용 시 반드시 출처를 명시해야 합니다.
+
+원본 출처: https://github.com/Gaon/portfolio-code-analyzer
 """
 from typing import Dict
 from pathlib import Path
@@ -236,6 +245,12 @@ class ReportGenerator:
         <div class="footer">
             <p>생성 일시: {{ timestamp }}</p>
             <p>포트폴리오 코드 품질 검증기 v1.0</p>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+            <p style="font-size: 12px; color: #999;">
+                Copyright (c) 2025 Gaon. All rights reserved.<br>
+                이 리포트는 포트폴리오 코드 품질 검증기로 생성되었습니다.<br>
+                원본 출처: <a href="https://github.com/Gaon/portfolio-code-analyzer" style="color: #3498db;">https://github.com/Gaon/portfolio-code-analyzer</a>
+            </p>
         </div>
     </div>
 </body>

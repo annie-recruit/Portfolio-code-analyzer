@@ -1,6 +1,15 @@
 """
 코드 품질 분석 엔진
 다양한 지표를 통해 코드 품질을 평가합니다.
+
+Copyright (c) 2025 Gaon
+All rights reserved.
+
+이 소프트웨어는 저작권법에 의해 보호됩니다.
+무단 복제, 배포, 수정을 금지합니다.
+사용 시 반드시 출처를 명시해야 합니다.
+
+원본 출처: https://github.com/Gaon/portfolio-code-analyzer
 """
 import os
 import ast
