@@ -399,8 +399,13 @@
             
             statusDiv.innerHTML = `<p>📁 ${codeFiles.length}개의 코드 파일 발견. 가져오는 중...</p>`;
             
-            // 최대 20개 파일만 가져오기 (너무 많으면 시간이 오래 걸림)
-            const filesToFetch = codeFiles.slice(0, 20);
+            // 최대 50개 파일까지 가져오기 (너무 많으면 시간이 오래 걸림)
+            const maxFiles = 50;
+            const filesToFetch = codeFiles.slice(0, maxFiles);
+            
+            if (codeFiles.length > maxFiles) {
+                statusDiv.innerHTML += `<p style="color: orange; margin-top: 10px;">⚠️ 총 ${codeFiles.length}개 파일 중 ${maxFiles}개만 분석합니다. (성능상 제한)</p>`;
+            }
             let allCode = '';
             let fetchedCount = 0;
             
@@ -437,6 +442,7 @@
             if (fileData.length > 0) {
                 // 파일 데이터를 JSON으로 저장하여 분석 함수에 전달
                 window.githubFileData = fileData;
+                window.githubTotalFiles = codeFiles.length; // 전체 파일 수 저장
                 currentCode = fileData.map(f => `# File: ${f.path}\n${f.content}`).join('\n\n');
                 statusDiv.innerHTML = `<p style="color: green;">✅ ${fetchedCount}개 파일 가져오기 완료! 분석을 시작합니다...</p>`;
                 // 자동으로 분석 시작
@@ -483,6 +489,7 @@
                 
                 // 파일 데이터 가져오기
                 const fileDataJson = JSON.stringify(window.githubFileData || []);
+                const totalFiles = window.githubTotalFiles || 0;
                 
                 // Python 분석 코드 실행
                 const analysisCode = `
@@ -491,10 +498,11 @@ import re
 import json
 from collections import defaultdict
 
-def analyze_code(code_content, file_data_json):
+def analyze_code(code_content, file_data_json, total_files=0):
     results = {
         'files_analyzed': 0,
         'total_lines': 0,
+        'total_files': total_files,
         'languages': defaultdict(int),
         'complexity': {'avg': 0, 'max': 0, 'high_complexity_files': []},
         'readability': {'score': 0, 'issues': []},
@@ -677,7 +685,8 @@ def analyze_code(code_content, file_data_json):
 
 file_data_json = r'''${fileDataJson}'''
 code_content = r'''${currentCode.replace(/'/g, "\\'")}'''
-result = analyze_code(code_content, file_data_json)
+total_files = ${totalFiles}
+result = analyze_code(code_content, file_data_json, total_files)
 import json
 json.dumps(result)
 `;
@@ -758,9 +767,10 @@ json.dumps(result)
                 
                 <div class="result-card">
                     <h3>📊 분석 요약</h3>
-                    <p><strong>분석된 파일:</strong> ${result.files_analyzed}개</p>
+                    <p><strong>분석된 파일:</strong> ${result.files_analyzed}개${result.total_files ? ` (전체 ${result.total_files}개 중)` : ''}</p>
                     <p><strong>총 코드 라인:</strong> ${result.total_lines.toLocaleString()}줄</p>
-                    <p><strong>평균 복잡도:</strong> ${result.complexity.avg.toFixed(1)}</p>
+                    <p><strong>파일당 평균 라인:</strong> ${Math.round(result.total_lines / result.files_analyzed)}줄</p>
+                    <p><strong>평균 복잡도:</strong> ${result.complexity.avg.toFixed(1)} ${result.complexity.avg < 3 ? '✅ (낮음)' : result.complexity.avg < 7 ? '⚠️ (보통)' : '❌ (높음)'}</p>
                     <div style="margin-top: 15px;">
                         <strong>사용된 언어:</strong><br>
                         ${languagesHtml}
