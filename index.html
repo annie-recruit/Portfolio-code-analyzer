@@ -213,6 +213,7 @@
         .overview-bottom {
             padding: 25px 30px;
             background: #fff;
+            margin-top: auto;
         }
         .overview-bottom h4 {
             margin-bottom: 12px;
@@ -315,6 +316,7 @@
             flex-wrap: wrap;
             gap: 25px;
             margin-top: 30px;
+            align-items: stretch;
         }
         .results-left,
         .results-right {
@@ -323,9 +325,10 @@
             flex-direction: column;
             gap: 25px;
         }
-        .results-left > .score-display,
-        .results-left > .result-card {
-            flex: 1 1 auto;
+        .results-left > .overview-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         @media (max-width: 1090px) {
             .results-layout {
