@@ -269,6 +269,43 @@
         .info-box strong {
             color: #2980b9;
         }
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+        .collapsible:hover {
+            opacity: 0.8;
+        }
+        .collapsible-content {
+            display: none;
+            margin-top: 15px;
+        }
+        .collapsible-content.active {
+            display: block;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .summary-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        .summary-item .label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .summary-item .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
     </style>
 </head>
 <body>
@@ -999,59 +1036,54 @@ json.dumps(result)
                 'F': '심각한 문제 - 코드 품질이 매우 낮습니다. 채용을 권장하지 않습니다.'
             };
             
-            // 점수 기준 설명
+            // 점수 기준 설명 (접을 수 있게)
             const scoreCriteria = `
-                <div class="score-explanation">
-                    <h4 style="margin-bottom: 15px; color: #667eea;">📋 점수 계산 기준</h4>
-                    <p style="margin-bottom: 10px;"><strong>기본 점수:</strong> 100점에서 시작</p>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li><strong>복잡도 감점:</strong> 평균 복잡도 10 이상 시 -20점, 5-10 시 -10점</li>
-                        <li><strong>이슈 감점:</strong> 심각한 이슈 1개당 -5점, 중간 이슈 1개당 -2점</li>
-                        <li><strong>가독성 감점:</strong> 가독성 이슈 1개당 -1점</li>
-                        <li><strong>구조 감점:</strong> 구조적 이슈 1개당 -2점</li>
-                    </ul>
+                <div class="score-explanation" style="margin-top: 20px;">
+                    <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active')">
+                        <h4 style="margin: 0; color: #667eea; cursor: pointer;">📋 점수 계산 기준 <span style="font-size: 12px; color: #999;">(클릭하여 펼치기)</span></h4>
+                    </div>
+                    <div class="collapsible-content">
+                        <p style="margin-top: 15px; margin-bottom: 10px;"><strong>기본 점수:</strong> 100점에서 시작</p>
+                        <ul style="margin-left: 20px; line-height: 1.8;">
+                            <li><strong>복잡도 감점:</strong> 평균 복잡도 10 이상 시 -20점, 5-10 시 -10점</li>
+                            <li><strong>이슈 감점:</strong> 심각한 이슈 1개당 -5점, 중간 이슈 1개당 -2점</li>
+                            <li><strong>가독성 감점:</strong> 가독성 이슈 1개당 -1점</li>
+                            <li><strong>구조 감점:</strong> 구조적 이슈 1개당 -2점</li>
+                        </ul>
+                    </div>
                 </div>
             `;
             
-            // 등급별 가이드
+            // 등급별 가이드 (접을 수 있게)
             const gradeGuide = `
-                <div class="grade-info">
-                    <div class="grade-item A">
-                        <strong>A (90-100점)</strong><br>
-                        <small>우수</small>
+                <div style="margin-top: 20px;">
+                    <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active')">
+                        <h4 style="margin: 0; color: #667eea; cursor: pointer;">📊 등급 기준 <span style="font-size: 12px; color: #999;">(클릭하여 펼치기)</span></h4>
                     </div>
-                    <div class="grade-item B">
-                        <strong>B (80-89점)</strong><br>
-                        <small>양호</small>
+                    <div class="collapsible-content">
+                        <div class="grade-info" style="margin-top: 15px;">
+                            <div class="grade-item A">
+                                <strong>A (90-100점)</strong><br>
+                                <small>우수</small>
+                            </div>
+                            <div class="grade-item B">
+                                <strong>B (80-89점)</strong><br>
+                                <small>양호</small>
+                            </div>
+                            <div class="grade-item C">
+                                <strong>C (70-79점)</strong><br>
+                                <small>보통</small>
+                            </div>
+                            <div class="grade-item D">
+                                <strong>D (60-69점)</strong><br>
+                                <small>미흡</small>
+                            </div>
+                            <div class="grade-item F">
+                                <strong>F (0-59점)</strong><br>
+                                <small>부족</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="grade-item C">
-                        <strong>C (70-79점)</strong><br>
-                        <small>보통</small>
-                    </div>
-                    <div class="grade-item D">
-                        <strong>D (60-69점)</strong><br>
-                        <small>미흡</small>
-                    </div>
-                    <div class="grade-item F">
-                        <strong>F (0-59점)</strong><br>
-                        <small>부족</small>
-                    </div>
-                </div>
-            `;
-            
-            // 스크리닝 가이드
-            const screeningGuide = `
-                <div class="screening-guide">
-                    <h3>🎯 리크루터 스크리닝 가이드</h3>
-                    <p style="margin-bottom: 15px;"><strong>${result.grade}등급 (${result.overall_score}점) - ${gradeDescriptions[result.grade]}</strong></p>
-                    <ul>
-                        ${result.grade === 'A' || result.grade === 'B' ? 
-                            '<li>✅ 즉시 면접 진행을 권장합니다</li><li>✅ 기술 면접에서 코드 리뷰를 진행하세요</li>' :
-                            result.grade === 'C' ?
-                            '<li>⚠️ 추가 검토가 필요합니다</li><li>⚠️ 기술 면접에서 코드 품질을 확인하세요</li>' :
-                            '<li>❌ 신중한 검토가 필요합니다</li><li>❌ 다른 포트폴리오나 프로젝트를 확인하세요</li>'
-                        }
-                    </ul>
                 </div>
             `;
             
@@ -1063,12 +1095,6 @@ json.dumps(result)
                         ${gradeDescriptions[result.grade]}
                     </div>
                 </div>
-                
-                ${scoreCriteria}
-                
-                ${gradeGuide}
-                
-                ${screeningGuide}
                 
                 ${result.jd_matching.enabled ? `
                 <div class="result-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
@@ -1108,13 +1134,33 @@ json.dumps(result)
                 </div>
                 ` : ''}
                 
-                <div class="result-card">
-                    <h3>📊 상세 분석 결과</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="label">📁 분석된 파일</div>
+                        <div class="value">${result.files_analyzed}개${result.total_files ? `<span style="font-size: 14px; color: #999; font-weight: normal;"> / ${result.total_files}개</span>` : ''}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="label">📝 총 코드 라인</div>
+                        <div class="value">${result.total_lines.toLocaleString()}줄</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="label">🧩 평균 복잡도</div>
+                        <div class="value">${result.complexity.avg.toFixed(1)} ${result.complexity.avg < 3 ? '<span style="color: green; font-size: 14px;">✅</span>' : result.complexity.avg < 7 ? '<span style="color: orange; font-size: 14px;">⚠️</span>' : '<span style="color: red; font-size: 14px;">❌</span>'}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="label">🌐 사용 언어</div>
+                        <div class="value" style="font-size: 16px;">${Object.keys(result.languages).join(', ') || '없음'}</div>
+                    </div>
+                </div>
+                
+                ${scoreCriteria}
+                ${gradeGuide}
+                
+                <div class="result-card" style="margin-top: 30px;">
+                    <h3>📊 상세 분석</h3>
                     
                     <div class="metric-card">
                         <div class="metric-title">📁 파일 분석</div>
-                        <p><strong>분석된 파일:</strong> ${result.files_analyzed}개${result.total_files ? ` (전체 ${result.total_files}개 중)` : ''}</p>
-                        <p><strong>총 코드 라인:</strong> ${result.total_lines.toLocaleString()}줄</p>
                         <p><strong>파일당 평균 라인:</strong> ${Math.round(result.total_lines / result.files_analyzed)}줄</p>
                         <div class="metric-description">
                             <strong>💡 해석:</strong> 파일당 평균 라인 수가 200줄 이하면 적절한 모듈화를 했다고 볼 수 있습니다.
@@ -1123,7 +1169,6 @@ json.dumps(result)
                     
                     <div class="metric-card">
                         <div class="metric-title">🧩 코드 복잡도</div>
-                        <p><strong>평균 복잡도:</strong> ${result.complexity.avg.toFixed(1)} ${result.complexity.avg < 3 ? '✅ (낮음)' : result.complexity.avg < 7 ? '⚠️ (보통)' : '❌ (높음)'}</p>
                         <p><strong>최대 복잡도:</strong> ${result.complexity.max}</p>
                         ${result.complexity.high_complexity_files.length > 0 ? 
                             `<p style="color: #e74c3c;"><strong>⚠️ 복잡도가 높은 파일:</strong> ${result.complexity.high_complexity_files.length}개</p>` : 
@@ -1133,36 +1178,33 @@ json.dumps(result)
                             <strong>💡 해석:</strong> 복잡도는 코드의 난이도를 나타냅니다. 낮을수록(1-3) 이해하기 쉽고, 높을수록(10 이상) 유지보수가 어렵습니다.
                         </div>
                     </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-title">🌐 사용된 프로그래밍 언어</div>
-                        <div style="margin: 10px 0;">
-                            ${languagesHtml}
-                        </div>
-                        <div class="metric-description">
-                            <strong>💡 해석:</strong> 지원자가 어떤 프로그래밍 언어를 사용하는지 확인할 수 있습니다.
-                        </div>
-                    </div>
                 </div>
                 
-                <div class="result-card">
-                    <h3>⚠️ 발견된 이슈</h3>
-                    <div class="info-box">
-                        <strong>이슈 심각도 설명:</strong><br>
-                        🔴 <strong>심각 (HIGH):</strong> 구문 오류, 보안 취약점 등 즉시 수정이 필요한 문제<br>
-                        🟡 <strong>중간 (MEDIUM):</strong> 코드 스멜, 긴 함수 등 개선이 권장되는 문제<br>
-                        🔵 <strong>낮음 (LOW):</strong> 스타일 개선 사항 등 선택적으로 개선 가능한 문제
+                ${allIssues.length > 0 ? `
+                <div class="result-card" style="margin-top: 30px;">
+                    <h3>⚠️ 발견된 이슈 <span style="font-size: 16px; font-weight: normal; color: #666;">(심각 ${highCount} | 중간 ${mediumCount} | 낮음 ${lowCount})</span></h3>
+                    <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active')" style="margin: 15px 0;">
+                        <span style="color: #667eea; cursor: pointer; font-size: 14px;">📋 이슈 심각도 설명 보기</span>
                     </div>
-                    <p style="margin: 15px 0;"><strong>요약:</strong> 심각 ${highCount}개 | 중간 ${mediumCount}개 | 낮음 ${lowCount}개</p>
+                    <div class="collapsible-content">
+                        <div class="info-box">
+                            🔴 <strong>심각 (HIGH):</strong> 구문 오류, 보안 취약점 등 즉시 수정이 필요한 문제<br>
+                            🟡 <strong>중간 (MEDIUM):</strong> 코드 스멜, 긴 함수 등 개선이 권장되는 문제<br>
+                            🔵 <strong>낮음 (LOW):</strong> 스타일 개선 사항 등 선택적으로 개선 가능한 문제
+                        </div>
+                    </div>
                     ${issuesHtml}
                 </div>
+                ` : ''}
                 
-                <div class="result-card">
+                ${recommendations.length > 0 && recommendations[0] !== '전반적으로 양호한 코드 품질입니다' ? `
+                <div class="result-card" style="margin-top: 30px;">
                     <h3>💡 개선 권장 사항</h3>
                     <ul style="line-height: 2;">
                         ${recommendations.map(r => `<li>${r}</li>`).join('')}
                     </ul>
                 </div>
+                ` : ''}
                 
                 <div class="info-box" style="margin-top: 30px;">
                     <strong>📌 참고사항:</strong><br>
