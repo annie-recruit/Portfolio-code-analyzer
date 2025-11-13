@@ -331,11 +331,9 @@
             flex-direction: column;
         }
         .bottom-sections {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            display: flex;
             gap: 20px;
             margin-top: 25px;
-            align-items: stretch;
         }
         .bottom-card {
             background: white;
@@ -345,20 +343,24 @@
             border-left: 4px solid #667eea;
             display: flex;
             flex-direction: column;
+            flex: 1;
         }
         .bottom-card h3 {
             margin-bottom: 12px;
             font-size: 18px;
             color: #2c3e50;
         }
-        @media (max-width: 1024px) {
+        @media (max-width: 960px) {
             .bottom-sections {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                flex-wrap: wrap;
+            }
+            .bottom-card {
+                flex: 1 1 calc(50% - 20px);
             }
         }
-        @media (max-width: 680px) {
-            .bottom-sections {
-                grid-template-columns: 1fr;
+        @media (max-width: 640px) {
+            .bottom-card {
+                flex: 1 1 100%;
             }
         }
     </style>
