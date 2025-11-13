@@ -281,12 +281,17 @@
             display: flex;
             flex-direction: column;
             gap: 25px;
+            align-self: stretch;
         }
         .results-right {
             flex: 1 1 480px;
             display: flex;
             flex-direction: column;
             gap: 25px;
+        }
+        .results-left > .score-display,
+        .results-left > .result-card {
+            flex: 1 1 auto;
         }
         @media (max-width: 1090px) {
             .results-layout {
@@ -296,6 +301,29 @@
             .results-right {
                 max-width: 100%;
             }
+            .results-left > .score-display,
+            .results-left > .result-card {
+                flex: unset;
+            }
+        }
+        .bottom-sections {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .bottom-card {
+            flex: 1 1 280px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .bottom-card h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+            color: #2c3e50;
         }
     </style>
 </head>
@@ -1186,46 +1214,53 @@ json.dumps(result)
                 `;
             }
 
+            let issuesCard = '';
             if (allIssues.length > 0) {
-                rightColumn += `
-                <div class="result-card">
-                    <h3>⚠️ 발견된 이슈 <span style="font-size: 16px; font-weight: normal; color: #666;">(심각 ${highCount} | 중간 ${mediumCount} | 낮음 ${lowCount})</span></h3>
-                    <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active')" style="margin: 15px 0;">
-                        <span style="color: #667eea; cursor: pointer; font-size: 14px;">📋 이슈 심각도 설명 보기</span>
+                issuesCard = `
+                <div class="bottom-card">
+                    <h3>⚠️ 발견된 이슈</h3>
+                    <p style="margin-bottom: 10px;">심각 ${highCount} | 중간 ${mediumCount} | 낮음 ${lowCount}</p>
+                    <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('active')">
+                        <span style="color: #667eea; cursor: pointer; font-size: 14px;">📋 이슈 상세 보기</span>
                     </div>
                     <div class="collapsible-content">
-                        <div class="info-box">
-                            🔴 <strong>심각 (HIGH):</strong> 구문 오류, 보안 취약점 등 즉시 수정이 필요한 문제<br>
-                            🟡 <strong>중간 (MEDIUM):</strong> 코드 스멜, 긴 함수 등 개선이 권장되는 문제<br>
-                            🔵 <strong>낮음 (LOW):</strong> 스타일 개선 사항 등 선택적으로 개선 가능한 문제
-                        </div>
+                        ${issuesHtml}
                     </div>
-                    ${issuesHtml}
+                </div>
+                `;
+            } else {
+                issuesCard = `
+                <div class="bottom-card">
+                    <h3>⚠️ 발견된 이슈</h3>
+                    <p>✅ 발견된 이슈가 없습니다.</p>
                 </div>
                 `;
             }
 
-            if (recommendations.length > 0 && recommendations[0] !== '전반적으로 양호한 코드 품질입니다') {
-                rightColumn += `
-                <div class="result-card">
+            const recommendationsCard = (recommendations.length > 0 && recommendations[0] !== '전반적으로 양호한 코드 품질입니다')
+                ? `
+                <div class="bottom-card">
                     <h3>💡 개선 권장 사항</h3>
-                    <ul style="line-height: 2;">
+                    <ul style="line-height: 1.8;">
                         ${recommendations.map(r => `<li>${r}</li>`).join('')}
                     </ul>
                 </div>
-                `;
-            }
+                `
+                : '';
 
-            rightColumn += `
-                <div class="info-box">
-                    <strong>📌 참고사항:</strong><br>
-                    • 이 분석은 코드 품질의 일부 측면만 평가합니다. 비즈니스 로직의 적절성은 별도로 평가해야 합니다.<br>
-                    • 학습용 프로젝트와 프로덕션 코드의 기준이 다를 수 있습니다.<br>
-                    • 최종 판단은 기술 면접과 포트폴리오 전체를 종합적으로 검토한 후 결정하시기 바랍니다.
+            const referenceCard = `
+                <div class="bottom-card">
+                    <h3>📌 참고사항</h3>
+                    <p>• 이 분석은 코드 품질의 일부 측면만 평가합니다. 비즈니스 로직의 적절성은 별도로 평가해야 합니다.</p>
+                    <p>• 학습용 프로젝트와 프로덕션 코드의 기준이 다를 수 있습니다.</p>
+                    <p>• 최종 판단은 기술 면접과 포트폴리오 전체를 종합적으로 검토한 후 결정하시기 바랍니다.</p>
                 </div>
-                <div class="info-box" style="margin-top: 15px;">
-                    <strong>🛠️ 현재 지원 언어:</strong><br>
-                    Python, JavaScript, TypeScript, Java, Kotlin, C/C++, C#, Go, Rust, Ruby, PHP
+            `;
+
+            const languagesCard = `
+                <div class="bottom-card">
+                    <h3>🛠️ 현재 지원 언어</h3>
+                    <p>Python, JavaScript, TypeScript, Java, Kotlin, C/C++, C#, Go, Rust, Ruby, PHP</p>
                 </div>
             `;
 
@@ -1237,6 +1272,12 @@ json.dumps(result)
                     <div class="results-right">
                         ${rightColumn}
                     </div>
+                </div>
+                <div class="bottom-sections">
+                    ${issuesCard}
+                    ${recommendationsCard}
+                    ${referenceCard}
+                    ${languagesCard}
                 </div>
                 
                 ${scoreCriteria}
